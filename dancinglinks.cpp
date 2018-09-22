@@ -100,20 +100,11 @@ void dataToArrForGrouping(ifstream& ifs, int**&arr, int*& rowGroup, int& rsize, 
 }
 
 int main(int argc, char* argv[]){
-/*
-	if(argc != 2){
-		cout << "Please Input your filename :-)" << endl;
-		return 0;
-	}
 
-	//ifstream ifs(argv[1]);
-
-	*/
-	ifstream ifs("instance\\instanceG.dat");
-
-	if(!ifs){
-		cout << "Something is wrong with your file." << endl;
-		return 0;
+	if(argc == 1){
+		ifstream ifs("instance\\instanceG.dat");
+	} else if(argc == 2){
+		ifstream ifs(argv[1]);
 	}
 
 	int** arr;
