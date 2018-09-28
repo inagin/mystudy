@@ -11,8 +11,8 @@ if(len(args) <= 1):
 
 filename = args[1]
 
-fieldX = 5
-fieldY = 6
+fieldX = 3
+fieldY = 20
 #ペントミノINLUXWPFZTVY
 mino =  [[[1,1,1,1,1]], #I
 
