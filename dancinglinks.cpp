@@ -100,11 +100,7 @@ void dataToArrForGrouping(ifstream& ifs, int**&arr, int*& rowGroup, int& rsize, 
 
 int main(int argc, char* argv[]){
 
-	if(argc == 1){
-		ifstream ifs("instance\\instanceG.dat");
-	} else if(argc == 2){
-		ifstream ifs(argv[1]);
-	}
+	ifstream ifs(argv[1]);
 
 	int** arr;
 	int* rowg;
@@ -114,7 +110,7 @@ int main(int argc, char* argv[]){
 	int numG;
 
 	Node* link;
-	multimap<int, Node*> gList;
+	multimap<int, Node*> gList; //必要？
 
 	//dataToArr(ifs, arr, rsize, csize);
 	//link = constructDL(arr, rsize, csize);

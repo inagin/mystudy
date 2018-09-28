@@ -51,6 +51,10 @@ public:
 		return _id;
 	}
 
+	static int GetNumOfZDDNode(){
+		return _total_id;
+	}
+
 };
 
 int ZddNode::_total_id = 2;
@@ -123,7 +127,7 @@ vector<ZddNode*> ZddForMemo::nodes;
 unordered_map<ZddQuery, int, HashZddQuery> ZddForMemo::nodeMap;
 unordered_map<vector<bool>, int> ZddForMemo::columnMap;
 
-int countOfNodes = 0;
+int countOfSets = 0;
 //ZDDの持つ集合を表示する。
 void DumpZddR(ZddNode* node, vector<int> &O, bool text = true){
 	if(node->GetID() == 1){
@@ -132,7 +136,7 @@ void DumpZddR(ZddNode* node, vector<int> &O, bool text = true){
 				cout << x << " ";
 			cout << endl;
 		}
-		countOfNodes++;
+		countOfSets++;
 		return;
 
 	} else if(node->GetID() == 0){
@@ -150,10 +154,13 @@ void DumpZddR(ZddNode* node, vector<int> &O, bool text = true){
 }
 
 void DumpZdd(ZddNode* node, bool text = true){
-	countOfNodes = 0;
+	countOfSets = 0;
 	vector<int> O;
 	DumpZddR(node, O, text);
-	cout << "The Number Of ZDD Nodes : " << countOfNodes << endl;
+
+	cout << endl;
+	cout << "The Number Of ZDD Nodes: " << ZddNode::GetNumOfZDDNode() << endl;
+	cout << "The Number Of ZDD Sets : " << countOfSets << endl;
 }
 
 //ZDDの構造を表示する

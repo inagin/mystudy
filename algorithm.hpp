@@ -1,5 +1,6 @@
 #include <map>
 #include <queue>
+#include <algorithm>
 #include "node.hpp"
 
 /* Dancing-Links を使って Exact Cover Problem を解く *///左にあるノード、右にあるノードの順に指定
@@ -397,12 +398,23 @@ int algorithmXG(Node* dl, multimap<int, Node*>& gList, int& numG){
 }
 
 ZddNode* searchWithZDDG(Node* dl, vector<int> &O , vector<int> &vG ,unsigned int k, vector<bool> &key, const int& numG, const int& csize){
+	//再帰の表示
+	/*
+	printf("%05d:", saiki);
+	for(auto &x : O){
+		cout << "->" << x << " ";
+	}
+	cout << endl;
+	*/
 	saiki++;
+
+	
+
 	if(dl->R == dl){
 		return ZddForMemo::nodes.at(1); //1終端を返す
-	} else if( vG.size() == numG ){
-		return ZddForMemo::nodes.at(0); //0終端を返す
-	}
+	}// else if( vG.size() == numG + 1 ){ //選択した数が存在するグループ数と一致
+	//	return ZddForMemo::nodes.at(0); //0終端を返す
+	//}
 
 	auto it = ZddForMemo::columnMap.find(key);
 	if( it != ZddForMemo::columnMap.end() )
@@ -415,8 +427,8 @@ ZddNode* searchWithZDDG(Node* dl, vector<int> &O , vector<int> &vG ,unsigned int
 	cover(dl, c);
 
 	ZddNode* x = ZddForMemo::nodes.at(0);
-	for(Node* tmp = c->D; tmp != c; tmp = tmp->D){
 
+	for(Node* tmp = c->D; tmp != c; tmp = tmp->D){
 		//今まで選択されたグループと同じか
 		bool flag = false;
 		for(auto g : vG){
