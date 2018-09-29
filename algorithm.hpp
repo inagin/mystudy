@@ -230,6 +230,7 @@ int uncover(Node* dl, Node* c){
 
 unsigned long long saiki = 0;
 unsigned long long kai = 0;
+unsigned long long cut = 0;
 
 void search(Node* dl, vector<int> &O ,unsigned int k){
 	saiki++;
@@ -276,13 +277,20 @@ int algorithmDLX(Node* dl){
 ZddNode* searchWithZDD(Node* dl, vector<int> &O ,unsigned int k, vector<bool> &key){
 	saiki++;
 	if(dl->R == dl){
+		//とりあえず解出力
+		//cout << "Found: ";
+		//for( int x : O ){
+		//	cout << x << " ";
+		//}
+		//cout << endl;
 		return ZddForMemo::nodes.at(1); //1終端を返す
 	}
 
 	auto it = ZddForMemo::columnMap.find(key);
-	if( it != ZddForMemo::columnMap.end() )
+	if( it != ZddForMemo::columnMap.end() ){
+		cut++;
 		return ZddForMemo::nodes.at(it->second);
-
+	}
 
 	Node* c = dl->R;
 
@@ -411,15 +419,22 @@ ZddNode* searchWithZDDG(Node* dl, vector<int> &O , vector<int> &vG ,unsigned int
 	
 
 	if(dl->R == dl){
+		//とりあえず解出力
+		//cout << "Found: ";
+		//for( int x : O ){
+		//	cout << x << " ";
+		//}
+		//cout << endl;
 		return ZddForMemo::nodes.at(1); //1終端を返す
 	}// else if( vG.size() == numG + 1 ){ //選択した数が存在するグループ数と一致
 	//	return ZddForMemo::nodes.at(0); //0終端を返す
 	//}
 
 	auto it = ZddForMemo::columnMap.find(key);
-	if( it != ZddForMemo::columnMap.end() )
+	if( it != ZddForMemo::columnMap.end() ){
+		cut++;
 		return ZddForMemo::nodes.at(it->second);
-
+	}
 
 	Node* c = dl->R;
 
@@ -481,9 +496,7 @@ ZddNode* algorithmDXZG(Node* dl, int& csize, const int& numG){
 
 
 	O.reserve(256);
-	ZddNode* zdd = searchWithZDDG(dl, O, vG, 0, key, numG, csize);
-
-	DumpZdd(zdd);
+	ZddNode* zdd = searchWithZDDG(dl, O, vG, 0, key, numG, csize);;
 
 	return zdd;
 }
