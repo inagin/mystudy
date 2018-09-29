@@ -149,6 +149,7 @@ int main(int argc, char* argv[]){
 	DumpZdd(zdd);
 	cout << "elappsed time :" << msec << " milli sec" << endl;
 	cout << "count         :" << saiki << endl;
+	cout << "cut count     :" << cut << endl;
 
 	//解放処理
 	for(int i = 0; i < rsize; i++){

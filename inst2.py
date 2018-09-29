@@ -11,7 +11,7 @@ if(len(args) <= 1):
 
 filename = args[1]
 
-fieldX = 8
+fieldX = 4
 fieldY = 3
 #ペントミノINLUXWPFZTVY
 mino =  [
