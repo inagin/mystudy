@@ -3,3 +3,4 @@ instmaker/__pycache__/
 *.exe
 *~
 ./*.dat
+*.pyc
