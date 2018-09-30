@@ -112,10 +112,10 @@ int main(int argc, char* argv[]){
 	Node* link;
 	multimap<int, Node*> gList; //必要？
 
-	//dataToArr(ifs, arr, rsize, csize);
-	//link = constructDL(arr, rsize, csize);
-	dataToArrForGrouping(ifs, arr, rowg, rsize, csize, numG);
-	constructDLForGrouping(link, gList, arr, rowg, rsize, csize);
+	dataToArr(ifs, arr, rsize, csize);
+	link = constructDL(arr, rsize, csize);
+//	dataToArrForGrouping(ifs, arr, rowg, rsize, csize, numG);
+//	constructDLForGrouping(link, gList, arr, rowg, rsize, csize);
 
 	//行の名前を出力
 	cout << "   ";
@@ -137,9 +137,9 @@ int main(int argc, char* argv[]){
 	//アルゴリズム開始
 	auto start = chrono::system_clock::now();
 
-	//algorithmX(link);
-	//ZddNode* zdd = algorithmDXZ(link, csize);
-	ZddNode* zdd = algorithmDXZG(link, csize, numG);
+//	algorithmX(link);
+	ZddNode* zdd = algorithmDXZ(link, csize);
+//	ZddNode* zdd = algorithmDXZG(link, csize, numG);
 
 	auto end = chrono::system_clock::now();
 	auto dur = end - start;
@@ -152,13 +152,13 @@ int main(int argc, char* argv[]){
 	cout << "cut count     :" << cut << endl;
 
 	//解放処理
-	for(int i = 0; i < rsize; i++){
-		delete[] arr[i];
-		arr[i] = nullptr;
-	}
-	delete[] arr;
-	delete[] rowg;
-	arr = nullptr;
+//	for(int i = 0; i < rsize; i++){
+//		delete[] arr[i];
+//		arr[i] = nullptr;
+//	}
+//	delete[] arr;
+//	delete[] rowg;
+//	arr = nullptr;
 
 	return 0;
 }
