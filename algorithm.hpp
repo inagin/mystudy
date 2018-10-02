@@ -202,7 +202,7 @@ int cover(Node* dl, Node* c){
 
 	for(Node* tmp = c->D; tmp != c; tmp = tmp->D){
 		for(Node* tmp2 = tmp->R; tmp2 != tmp; tmp2 = tmp2->R ){
-			//c行目の成分1の列を取り除く
+			//c列目の成分1の行を取り除く
 			tmp2->D->U = tmp2->U;
 			tmp2->U->D = tmp2->D;
 
@@ -240,22 +240,22 @@ void search(Node* dl, vector<int> &O ,unsigned int k){
 	}
 
 	//choose C
-	//とりあえずカバーされてないものから
+	//cの選び方、要実験
 	Node* c = dl->R;
 	cover(dl, c); //クヌースの論文によると必要
 
-	for(Node* tmp = c->D; tmp != c; tmp = tmp->D){
-		O.push_back(atoi(tmp->name.c_str()));
+	for(Node* r = c->D; r != c; r = r->D){
+		O.push_back(atoi(r->name.c_str()));
 
-		for(Node* tmp2 = tmp->R; tmp2 != tmp; tmp2 = tmp2->R){
-			cover(dl, tmp2->C);
+		for(Node* tmp = r->R; tmp != r; tmp = tmp->R){
+			cover(dl, tmp->C);
 		}
 
 		search(dl, O, k+1);
 
 		O.pop_back();
-		for(Node* tmp2 = tmp->L; tmp2 != tmp; tmp2 = tmp2->L){
-			uncover(dl, tmp2->C);
+		for(Node* tmp = r->L; tmp != r; tmp = tmp->L){
+			uncover(dl, tmp->C);
 		}
 	}
 	uncover(dl, c);
@@ -294,28 +294,30 @@ ZddNode* searchWithZDD(Node* dl, vector<int> &O ,unsigned int k, vector<bool> &k
 
 	Node* c = dl->R;
 
+	//Memo Cache用のKeyを作成
 	key[c->label] = false;
 	cover(dl, c);
 
 	ZddNode* x = ZddForMemo::nodes.at(0);
-	for(Node* tmp = c->D; tmp != c; tmp = tmp->D){
-		O.push_back(atoi(tmp->name.c_str()));
+	for(Node* r = c->D; r != c; r = r->D){
+		O.push_back(atoi(r->name.c_str()));
 
-		for(Node* tmp2 = tmp->R; tmp2 != tmp; tmp2 = tmp2->R){
+		for(Node* tmp = r->R; tmp != r; tmp = tmp->R){
 
-			key[tmp2->C->label] = false;
-			cover(dl, tmp2->C);
+			key[tmp->C->label] = false;
+			cover(dl, tmp->C);
 		}
 
 		ZddNode* y = searchWithZDD(dl, O, k+1, key);
 		if( y != ZddForMemo::nodes.at(0))
-			x = ZddForMemo::nodes.at( ZddForMemo::Unique(tmp->label, x->GetID(), y->GetID()) );
+			x = ZddForMemo::nodes.at( ZddForMemo::Unique(r->label, x->GetID(), y->GetID()) );
 
 		O.pop_back();
-		for(Node* tmp2 = tmp->L; tmp2 != tmp; tmp2 = tmp2->L){
+		//uncover
+		for(Node* tmp = r->L; tmp != r; tmp = tmp->L){
 
-			key[tmp2->C->label] = true;
-			uncover(dl, tmp2->C);
+			key[tmp->C->label] = true;
+			uncover(dl, tmp->C);
 		}
 	}
 	uncover(dl, c);
@@ -363,30 +365,30 @@ void searchG(Node* dl, vector<int> &O , vector<int> &vG ,unsigned int k, const i
 	Node* c = dl->R;
 	cover(dl, c); //クヌースの論文によると必要
 
-	for(Node* tmp = c->D; tmp != c; tmp = tmp->D){
+	for(Node* r = c->D; r != c; r = r->D){
 		bool flag = false;
 
 		//vGに含まれていたら飛ばす
 		for(auto g : vG){
-				if( tmp->group == g )
+				if( r->group == g )
 					flag = true;
 		}
 		//使えるものが無かったら終わり
 		if(flag)continue;
 
-		O.push_back(atoi(tmp->name.c_str()));
+		O.push_back(atoi(r->name.c_str()));
 
-		for(Node* tmp2 = tmp->R; tmp2 != tmp; tmp2 = tmp2->R){
-			cover(dl, tmp2->C);
+		for(Node* tmp = r->R; tmp != r; tmp = tmp->R){
+			cover(dl, tmp->C);
 		}
 
-		vG.push_back(tmp->group);
+		vG.push_back(r->group);
 		searchG(dl, O, vG, k+1, numG);
 		vG.pop_back();
 
 		O.pop_back();
-		for(Node* tmp2 = tmp->L; tmp2 != tmp; tmp2 = tmp2->L){
-			uncover(dl, tmp2->C);
+		for(Node* tmp = r->L; tmp != r; tmp = tmp->L){
+			uncover(dl, tmp->C);
 		}
 	}
 	uncover(dl, c);
@@ -443,40 +445,40 @@ ZddNode* searchWithZDDG(Node* dl, vector<int> &O , vector<int> &vG ,unsigned int
 
 	ZddNode* x = ZddForMemo::nodes.at(0);
 
-	for(Node* tmp = c->D; tmp != c; tmp = tmp->D){
+	for(Node* r = c->D; r != c; r = r->D){
 		//今まで選択されたグループと同じか
 		bool flag = false;
 		for(auto g : vG){
-			if(tmp->group == g)
+			if(r->group == g)
 				flag = true;
 		}
 		if( flag )continue;
 
-		vG.push_back(tmp->group);
-		O.push_back(atoi(tmp->name.c_str()));
+		vG.push_back(r->group);
+		O.push_back(atoi(r->name.c_str()));
 
 		//同グループのキーをtrueに
-		key[csize + tmp->group] = true;
+		key[csize + r->group] = true;
 
-		for(Node* tmp2 = tmp->R; tmp2 != tmp; tmp2 = tmp2->R){
-			key[tmp2->C->label] = false;
-			cover(dl, tmp2->C);
+		for(Node* tmp = r->R; tmp != r; tmp = tmp->R){
+			key[tmp->C->label] = false;
+			cover(dl, tmp->C);
 		}
 
 		ZddNode* y = searchWithZDDG(dl, O, vG, k+1, key, numG, csize);
 		if( y != ZddForMemo::nodes.at(0))
-			x = ZddForMemo::nodes.at( ZddForMemo::Unique(tmp->label, x->GetID(), y->GetID()) );
+			x = ZddForMemo::nodes.at( ZddForMemo::Unique(r->label, x->GetID(), y->GetID()) );
 
 		O.pop_back();
 		vG.pop_back();
 
-		for(Node* tmp2 = tmp->L; tmp2 != tmp; tmp2 = tmp2->L){
+		for(Node* tmp = r->L; tmp != r; tmp = tmp->L){
 
-			key[tmp2->C->label] = true;
-			uncover(dl, tmp2->C);
+			key[tmp->C->label] = true;
+			uncover(dl, tmp->C);
 		}
 
-		key[csize + tmp->group] = false;
+		key[csize + r->group] = false;
 	}
 	uncover(dl, c);
 	key[c->label] = true;
