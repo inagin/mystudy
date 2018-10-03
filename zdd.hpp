@@ -156,6 +156,8 @@ void DumpZddR(ZddNode* node, vector<int> &O, bool text = true){
 void DumpZdd(ZddNode* node, bool text = true){
 	countOfSets = 0;
 	vector<int> O;
+
+	cout << "ZDD Paths To 1 Node: " << endl;
 	DumpZddR(node, O, text);
 
 	cout << endl;

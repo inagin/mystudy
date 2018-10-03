@@ -3,13 +3,12 @@
 	高速化の為にstdに頼らない（ unordered_mapなど )
 	→連想配列の自作。時間があったら。
 
-	stringstreamなど重そうなのを極力使わない
-
 	instancemakerの様子がおかしい。
 	10 x 6 のインスタンスを作成しようとしたところ、バグが生じた……。
 */
 
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <fstream>
 #include <cstdlib>
@@ -154,15 +153,15 @@ int main(int argc, char* argv[]){
 	
 
 
-	//行の名前を出力
-	cout << "   ";
+	//列の番号を出力
+	cout << "      ";
 	for(Node* tmp = link->R; tmp != link; tmp = tmp->R){
-		cout << tmp->name << " ";
+		cout << (char)(0x30 + tmp->label) << " ";
 	}
 	cout << endl;
 
 	for(int i = 0; i < rsize; i++){
-		cout << i << " :";
+		cout << setw(4) << i << " :";
 		for(int j = 0; j < csize; j++){
 			cout << arr[i][j] << " ";
 		}

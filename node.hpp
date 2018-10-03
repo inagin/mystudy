@@ -13,9 +13,8 @@ struct Node{
 	
 	Node* C; //列のヘッダーへのポインタ
 	int size; //サイズ
-	int label; //列番号
+	int label; //ヘッダの場合は列、ヘッダ以外の場合は行の番号
 	int group; //グループ番号
-	string name; //名前（のちに行番号に差し替え予定）
 };
 
 //新たなノードを作成し、返却する
@@ -24,10 +23,9 @@ Node* initNode(){
 	
 	//初期化
 	node->L = node->R = node->U = node->D = node->C = nullptr;
-	node->size = 0;
-	node->label = 0;
-	node->group = 0;
-	node->name = "";
+	node->size = -1;
+	node->label = -1;
+	node->group = -1;
 
 	return node; 
 }
@@ -37,7 +35,7 @@ void dumpNode(Node* head){
 	Node* tmp = head->R;
 
 	for(Node* tmp2 = tmp->D; tmp2->D == tmp; tmp2 = tmp2->D){
-		cout << " " << tmp2->name << ":";
+		cout << " " << tmp2->label << ":";
 		for(Node* tmp3 = tmp2; tmp3->R == tmp2; tmp3 = tmp3->R){
 			if(tmp3 != head)
 					cout << " (" << tmp3->label << ")";
