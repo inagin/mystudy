@@ -16,7 +16,7 @@ void connectUD(Node* A, Node* B){
 }
 
 //0-1二次元配列から Dancing-Linkを構築
-//各行のノードには name を設定する
+//各行のノードには label を設定する
 Node* constructDL(int** instance, int nrow, int ncolumn){
 	Node* head = initNode();
 	//列ごとのヘッダノードを作成、LRポインタで繋げる
@@ -29,7 +29,6 @@ Node* constructDL(int** instance, int nrow, int ncolumn){
 	for(int i = 0; i < ncolumn; i++){
 		Node* hc = initNode();
 		hc->label = i;
-		hc->name += (char)(i + 0x41);
 		connectLR(tmp, hc);
 		tmp = hc;
 		tmpnodes_col[i] = hc;
@@ -68,10 +67,8 @@ Node* constructDL(int** instance, int nrow, int ncolumn){
 
 				size_col[j]++;
 
-				stringstream ss;
-				ss << i;
+
 				node->label = i;
-				node->name = ss.str();
 			}
 
 		}
@@ -115,7 +112,6 @@ void constructDLForGrouping(Node*& head, multimap<int, Node*>& groupList, int** 
 	for(int i = 0; i < ncolumn; i++){
 		Node* hc = initNode();
 		hc->label = i;
-		hc->name += (char)(i + 0x41);
 		connectLR(tmp, hc);
 		tmp = hc;
 		tmpnodes_col[i] = hc;
@@ -154,10 +150,7 @@ void constructDLForGrouping(Node*& head, multimap<int, Node*>& groupList, int** 
 
 				size_col[j]++;
 
-				stringstream ss;
-				ss << i;
 				node->label = i;
-				node->name = ss.str();
 				node->group = rowGroup[i];
 			}
 
@@ -206,7 +199,7 @@ int cover(Node* dl, Node* c){
 			tmp2->D->U = tmp2->U;
 			tmp2->U->D = tmp2->D;
 
-			//cout << "cutted " << tmp2->name << endl;
+			//cout << "cutted " << tmp2->label << endl;
 
 			tmp2->C->size -= 1;
 		}
@@ -245,7 +238,7 @@ void search(Node* dl, vector<int> &O ,unsigned int k){
 	cover(dl, c); //クヌースの論文によると必要
 
 	for(Node* r = c->D; r != c; r = r->D){
-		O.push_back(atoi(r->name.c_str()));
+		O.push_back(r->label);
 
 		for(Node* tmp = r->R; tmp != r; tmp = tmp->R){
 			cover(dl, tmp->C);
@@ -300,7 +293,7 @@ ZddNode* searchWithZDD(Node* dl, vector<int> &O ,unsigned int k, vector<bool> &k
 
 	ZddNode* x = ZddForMemo::nodes.at(0);
 	for(Node* r = c->D; r != c; r = r->D){
-		O.push_back(atoi(r->name.c_str()));
+		O.push_back(r->label);
 
 		for(Node* tmp = r->R; tmp != r; tmp = tmp->R){
 
@@ -376,7 +369,7 @@ void searchG(Node* dl, vector<int> &O , vector<int> &vG ,unsigned int k, const i
 		//使えるものが無かったら終わり
 		if(flag)continue;
 
-		O.push_back(atoi(r->name.c_str()));
+		O.push_back(r->label);
 
 		for(Node* tmp = r->R; tmp != r; tmp = tmp->R){
 			cover(dl, tmp->C);
@@ -455,7 +448,7 @@ ZddNode* searchWithZDDG(Node* dl, vector<int> &O , vector<int> &vG ,unsigned int
 		if( flag )continue;
 
 		vG.push_back(r->group);
-		O.push_back(atoi(r->name.c_str()));
+		O.push_back(r->label);
 
 		//同グループのキーをtrueに
 		key[csize + r->group] = true;
