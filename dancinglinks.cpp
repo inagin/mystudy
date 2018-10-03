@@ -151,7 +151,7 @@ int main(int argc, char* argv[]){
 	}
 
 	
-
+	ZddNode::OnDraw();
 
 	//列の番号を出力
 	cout << "      ";
@@ -201,11 +201,12 @@ int main(int argc, char* argv[]){
 	} else if(mode == "-dxzg"){
 		DumpZdd(zdd);
 	}
-
 	
 	cout << "elappsed time :" << msec << " milli sec" << endl;
 	cout << "count         :" << saiki << endl;
 	if(mode != "-dlx" )cout << "cut count     :" << cut << endl;
+
+	DumpDOT("result", "output.dot", "output.png");
 
 	return 0;
 }

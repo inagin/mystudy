@@ -323,7 +323,9 @@ ZddNode* searchWithZDD(Node* dl, vector<int> &O ,unsigned int k, vector<bool> &k
 
 //アルゴリズムDXZ
 ZddNode* algorithmDXZ(Node* dl, int& csize){
+
 	ZddForMemo::Init();
+
 	vector<int> O;
 	vector<bool> key(csize);
 	fill(key.begin(), key.end(), true);
@@ -331,8 +333,6 @@ ZddNode* algorithmDXZ(Node* dl, int& csize){
 
 	O.reserve(256);
 	ZddNode* zdd = searchWithZDD(dl, O, 0, key);
-
-	//DumpColumnMap();
 
 	return zdd;
 }

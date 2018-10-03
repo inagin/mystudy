@@ -7,6 +7,10 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
+#include <string>
+#include <sstream>
+#include <algorithm>
+#include <fstream>
 
 using namespace std;
 
@@ -21,6 +25,10 @@ public:
 	static ZddNode _zero;
 	static ZddNode _one;
 
+	static bool draw; //dot形式を出力するかどうか
+	static int maxRow;
+	//static vector<int> orderNode; //追加されたvalの順序を保存（描画用）
+
 private:
 	int _id; //ノードのID。0-終端ノードは0、1-終端ノードは1、それ以外は2～
 	static int _total_id;
@@ -32,20 +40,38 @@ public:
 		ZeroTerminal = &_zero;
 		OneTerminal = &_one;
 
+		ZeroTerminal->val = -1;
+		OneTerminal->val = -1;
+
 		ZeroTerminal->_id = 0;
 		OneTerminal->_id = 1;
 
 	}
 
+	static void OnDraw(){
+		draw = true;
+		//orderNode.reserve(2048);
+	}
+
 	static ZddNode* CreateZddNode(int _val, int _zero_child, int _one_child){
 		//新たにノードを作成し、返却する
+		if(draw){
+			if(_val > maxRow)maxRow = _val;
+		}
+		//if( find(orderNode.begin(), orderNode.end(), _val) == orderNode.end()){
+		//	orderNode.push_back(_val);
+		//} //下に配置するとなぜか落ちる
+
 		ZddNode* node = new ZddNode();
 		node->_id = _total_id++; //ノード番号を割り振る
 
 		node->zero_child = _zero_child;
 		node->one_child = _one_child;
 		node->val = _val;
+
+
 	}
+
 
 	int GetID(){
 		return _id;
@@ -62,6 +88,10 @@ ZddNode* ZddNode::ZeroTerminal;
 ZddNode* ZddNode::OneTerminal;
 ZddNode ZddNode::_zero;
 ZddNode ZddNode::_one;
+
+bool ZddNode::draw = false;
+int ZddNode::maxRow = 0;
+//vector<int> ZddNode::orderNode;
 
 struct ZddQuery{
 	int val;
@@ -94,7 +124,6 @@ class ZddForMemo{
 public:
 	static void Init(){
 		ZddNode::Init();
-
 		nodes.push_back( &ZddNode::_zero );
 		nodes.push_back( &ZddNode::_one );
 	}
@@ -119,8 +148,8 @@ public:
 
 	static vector<ZddNode*> nodes; //ZDDノードを入れておく
 	static unordered_map<ZddQuery, int, HashZddQuery> nodeMap; //IDを値とするハッシュ
-
 	static unordered_map<vector<bool>, int> columnMap; //選択された列をキー、IDを値とするハッシュ
+
 };
 
 vector<ZddNode*> ZddForMemo::nodes;
@@ -128,6 +157,7 @@ unordered_map<ZddQuery, int, HashZddQuery> ZddForMemo::nodeMap;
 unordered_map<vector<bool>, int> ZddForMemo::columnMap;
 
 int countOfSets = 0;
+
 //ZDDの持つ集合を表示する。
 void DumpZddR(ZddNode* node, vector<int> &O, bool text = true){
 	if(node->GetID() == 1){
@@ -203,5 +233,58 @@ void DumpColumnMap(){
 
 		cout << " Id: " << x.second << "\n";
 	}
+	return;
+}
+
+void DumpDOT(string graphName, string fileName, string outputPNGFile = ""){
+	//DOTファイルを出力
+	ofstream ofs(fileName, ofstream::out);
+
+	ofs << "digraph \"" << graphName << "\" {" << endl;
+
+	/*
+	for(int i = ZddNode::maxRow; i >= 0; i--){
+		ofs << " " << i << " [shape=none,label=\"" << i << "\"];" << endl;
+	}
+
+	for(int i = ZddNode::maxRow; i >= 1; i--){
+		ofs << " " << i << " -> " << i-1 << " [style=invis];" << endl;
+	}
+	
+	ofs << " " << "\"^\" [shape=none,label=\"root\"];" << endl;
+	ofs << " " << "\"^\" -> \"" << ZddNode::maxRow << ":0\" [style=dashed];" << endl;
+	*/
+	//ノードのラベル名は"{番号}:{GetId()}"とする
+	for(int i = ZddNode::maxRow; i >= 0; i--){
+		int count = 0;
+		for(int j = 0; j < ZddForMemo::nodes.size(); j++){
+			if(i == ZddForMemo::nodes[j]->val){
+				//iと同じ番号のZDDノードを並べる
+				ZddNode* nodej = ZddForMemo::nodes[j];
+				ofs << " " << "\"" << i << ":" << j << "\" [label=\"" << i << "\"];" << endl;
+				ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes[nodej->zero_child]->val << ":" << nodej->zero_child << "\" [style=dashed, color=blue];" << endl; 
+				ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes[nodej->one_child]->val << ":" << nodej->one_child << "\" [style=solid, color=red];" << endl; 
+			}	
+		}
+		//ofs << " {rank=same; " << i << ";" << i << "}" << endl;
+	}
+
+	ofs << " \"-1:0\" [shape=square, label=\"0\"];" << endl; 
+	ofs << " \"-1:1\" [shape=square, label=\"1\"];" << endl; 
+
+	ofs << "}";
+	ofs.close();
+
+	cout << "Created " << fileName << "." << endl;
+	//PNGFileが指定されていればそれも出力
+	if(outputPNGFile == ""){
+		return;
+	}
+
+	stringstream command;
+	command << "dot -Tpng " << fileName << " -o " << outputPNGFile << endl;
+	system("dot -Tpng output.dot -o output.png");
+
+	cout << "Created " << outputPNGFile << "." << endl;
 	return;
 }
