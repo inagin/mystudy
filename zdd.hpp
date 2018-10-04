@@ -191,8 +191,8 @@ void DumpZdd(ZddNode* node, bool text = true){
 	DumpZddR(node, O, text);
 
 	cout << endl;
-	cout << "The Number Of ZDD Nodes: " << ZddNode::GetNumOfZDDNode() << endl;
-	cout << "The Number Of ZDD Sets : " << countOfSets << endl;
+	cout << "Number Of ZDD Nodes: " << ZddNode::GetNumOfZDDNode() << endl;
+	cout << "Number Of ZDD Sets : " << countOfSets << endl;
 }
 
 //ZDDの構造を表示する
