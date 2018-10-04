@@ -158,8 +158,8 @@ int main(int argc, char* argv[]){
 	}
 
 	if(outDOT == false && outPNG == true){
-		cout << "You should give me -d option." << endl;
-		return -1;
+		outDOT = true;
+		dotName = pngName;
 	}
 
 	if(outDOT == true && (algOpt == ALG_DLX || algOpt == ALG_DLXG)){
@@ -201,11 +201,14 @@ int main(int argc, char* argv[]){
 		constructDLForGrouping(link, gList, arr, rowg, rsize, csize);
 	}
 
+	cout << endl;
+
 	if(outDOT == true){
 		ZddNode::OnDraw();
 	}
 
 	//列の番号を出力
+	cout << "Instance " << instanceName << ":" << endl;
 	cout << "      ";
 	for(Node* tmp = link->R; tmp != link; tmp = tmp->R){
 		cout << (char)(0x30 + tmp->label) << " ";
@@ -254,12 +257,14 @@ int main(int argc, char* argv[]){
 		DumpZdd(zdd);
 	}
 	
-	cout << "elappsed time :" << msec << " milli sec" << endl;
-	cout << "count         :" << saiki << endl;
-	if(algOpt == ALG_DXZ || algOpt == ALG_DXZG )cout << "cut count     :" << cut << endl;
+	cout << "Elappsed Time :" << msec << " milli sec" << endl;
+	cout << "Count         :" << saiki << endl;
+	if(algOpt == ALG_DXZ || algOpt == ALG_DXZG )cout << "Cut Count     :" << cut << endl;
 	cout << endl;
 
 	if(outDOT == true){
+		dotName = dotName + ".dot";
+		pngName = pngName + ".png";
 		DumpDOT("result", dotName, outPNG?pngName:"");
 	}
 
