@@ -283,7 +283,7 @@ void DumpDOT(string graphName, string fileName, string outputPNGFile = ""){
 
 	stringstream command;
 	command << "dot -Tpng " << fileName << " -o " << outputPNGFile << endl;
-	system("dot -Tpng output.dot -o output.png");
+	system(command.str().c_str());
 
 	cout << "Created " << outputPNGFile << "." << endl;
 	return;

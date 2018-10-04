@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <chrono>
 #include <map>
+#include <unistd.h>
 
 #include "zdd.hpp"
 #include "algorithm.hpp"
@@ -96,21 +97,77 @@ void dataToArrForGrouping(ifstream& ifs, int**&arr, int*& rowGroup, int& rsize, 
 	return;
 }
 
+enum {
+	ALG_DLX,
+	ALG_DXZ,
+	ALG_DLXG,
+	ALG_DXZG
+};
+
+int algOpt = ALG_DXZG; //アルゴリズムの種類
+string instanceName = "";
+string dotName = "";
+string pngName = "";
+
+bool outDOT = false;
+bool outPNG = false;
+
 int main(int argc, char* argv[]){
-	if(argc <= 1){
+	int opt;
+	
+
+	opterr = 0;
+	while((opt = getopt(argc, argv, "a:f:d:p:")) != -1){
+		switch(opt) {
+			case 'a':
+				if(string(optarg) == "dlx"){
+					algOpt = ALG_DLX;
+				} else if(string(optarg) == "dxz"){
+					algOpt = ALG_DXZ;
+				} else if(string(optarg) == "dlxg"){
+					algOpt = ALG_DLXG;
+				} else if(string(optarg) == "dxzg"){
+					algOpt = ALG_DXZG;
+				} else {
+					cout << "Algorithm is invalid." << endl;
+					return -1;
+				}
+
+				break;
+			case 'f':
+				instanceName = optarg;
+				break;
+			case 'd':
+				outDOT = true;
+				dotName = optarg;
+				break;
+			case 'p':
+				outPNG = true;
+				pngName = optarg;
+				break;
+			default:
+				cout << "Invalid Option." << endl;
+			return -1;
+		}
+	}
+
+	//Validation Check
+	if(instanceName == ""){
 		cout << "Could I have your file name?" << endl;
-		return 0;
+		return -1;
 	}
 
-	ifstream ifs(argv[1]);
-
-	string mode;
-	if(argc <= 2){
-		//デフォルトではdxzgを使う
-		mode = "-dxzg";
-	} else {
-		mode = argv[2];
+	if(outDOT == false && outPNG == true){
+		cout << "You should give me -d option." << endl;
+		return -1;
 	}
+
+	if(outDOT == true && (algOpt == ALG_DLX || algOpt == ALG_DLXG)){
+		cout << "This algorithm does not support output DOT file." << endl;
+		return -1;
+	}
+
+	ifstream ifs(instanceName);
 
 	int** arr;
 	int* rowg;
@@ -125,28 +182,28 @@ int main(int argc, char* argv[]){
 	//初期データの構築
 
 
-	if(mode == "-dlx"){
+	if(algOpt == ALG_DLX){
 		cout << "Algorithm DLX" << endl;
 		//Algorithm DLXを使用
 		dataToArr(ifs, arr, rsize, csize);
 		link = constructDL(arr, rsize, csize);
-	} else if(mode == "-dxz") {
+
+	} else if(algOpt == ALG_DXZ) {
 		cout << "Algorithm DXZ" << endl;
 		//Algorithm DXZを使用
 		dataToArr(ifs, arr, rsize, csize);
 		link = constructDL(arr, rsize, csize);
-	} else if(mode == "-dxzg"){
+
+	} else if(algOpt == ALG_DXZG){
 		cout << "Algorithm DXZwithG" << endl;
 		//Algorithm DXZwithGを使用
 		dataToArrForGrouping(ifs, arr, rowg, rsize, csize, numG);
 		constructDLForGrouping(link, gList, arr, rowg, rsize, csize);
-	} else {
-		cout << "We don't know " << mode <<". We're sorry.";
-		return 0;
 	}
 
-	
-	ZddNode::OnDraw();
+	if(outDOT == true){
+		ZddNode::OnDraw();
+	}
 
 	//列の番号を出力
 	cout << "      ";
@@ -170,15 +227,15 @@ int main(int argc, char* argv[]){
 	//計測開始
 	auto start = chrono::system_clock::now();
 
-	if(mode == "-dlx"){
+	if(algOpt == ALG_DLX){
 		//Algorithm DLXを使用
 		algorithmDLX(link);
-	} else if(mode == "-dxz") {
+	} else if(algOpt == ALG_DXZ) {
 		//Algorithm DXZを使用
 		dataToArr(ifs, arr, rsize, csize);
 		link = constructDL(arr, rsize, csize);
 		zdd = algorithmDXZ(link, csize);
-	} else if(mode == "-dxzg"){
+	} else if(algOpt == ALG_DXZG){
 		//Algorithm DXZwithGを使用
 		dataToArrForGrouping(ifs, arr, rowg, rsize, csize, numG);
 		constructDLForGrouping(link, gList, arr, rowg, rsize, csize);
@@ -191,17 +248,20 @@ int main(int argc, char* argv[]){
 
 	auto msec = chrono::duration_cast<chrono::milliseconds>(dur).count();
 
-	if(mode == "-dxz") {
+	if(algOpt == ALG_DXZ) {
 		DumpZdd(zdd);
-	} else if(mode == "-dxzg"){
+	} else if(algOpt == ALG_DXZG){
 		DumpZdd(zdd);
 	}
 	
 	cout << "elappsed time :" << msec << " milli sec" << endl;
 	cout << "count         :" << saiki << endl;
-	if(mode != "-dlx" )cout << "cut count     :" << cut << endl;
+	if(algOpt == ALG_DXZ || algOpt == ALG_DXZG )cout << "cut count     :" << cut << endl;
+	cout << endl;
 
-	DumpDOT("result", "output.dot", "output.png");
+	if(outDOT == true){
+		DumpDOT("result", dotName, outPNG?pngName:"");
+	}
 
 	return 0;
 }
