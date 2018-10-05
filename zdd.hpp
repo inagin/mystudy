@@ -236,7 +236,8 @@ void DumpColumnMap(){
 	return;
 }
 
-void DumpDOT(string graphName, string fileName, string outputPNGFile = ""){
+//ordered: 一行に同じノードが並ぶようにする
+void DumpDOT(string graphName, string fileName, string outputPNGFile = "", bool ordered = false){
 	//DOTファイルを出力
 	ofstream ofs(fileName, ofstream::out);
 
@@ -255,8 +256,15 @@ void DumpDOT(string graphName, string fileName, string outputPNGFile = ""){
 	ofs << " " << "\"^\" -> \"" << ZddNode::maxRow << ":0\" [style=dashed];" << endl;
 	*/
 	//ノードのラベル名は"{番号}:{GetId()}"とする
+
+	vector<int> sameList; //同じ値のノードの番号
 	for(int i = ZddNode::maxRow; i >= 0; i--){
 		int count = 0;
+
+		if(ordered == true){
+			sameList.clear();
+		}
+
 		for(int j = 0; j < ZddForMemo::nodes.size(); j++){
 			if(i == ZddForMemo::nodes[j]->val){
 				//iと同じ番号のZDDノードを並べる
@@ -264,9 +272,20 @@ void DumpDOT(string graphName, string fileName, string outputPNGFile = ""){
 				ofs << " " << "\"" << i << ":" << j << "\" [label=\"" << i << "\"];" << endl;
 				ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes[nodej->zero_child]->val << ":" << nodej->zero_child << "\" [style=dashed, color=blue];" << endl; 
 				ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes[nodej->one_child]->val << ":" << nodej->one_child << "\" [style=solid, color=red];" << endl; 
-			}	
+
+				if(ordered == true){
+					sameList.push_back(j);
+				}
+			}
 		}
-		//ofs << " {rank=same; " << i << ";" << i << "}" << endl;
+
+		if(ordered == true){
+			ofs << " {rank=same; ";
+			for(int j : sameList){
+				ofs << "\"" << i << ":" << j << "\"" << ";";
+			}
+			ofs << "}" << endl;
+		}
 	}
 
 	ofs << " \"-1:0\" [shape=square, label=\"0\"];" << endl; 

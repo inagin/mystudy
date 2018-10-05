@@ -292,7 +292,9 @@ ZddNode* searchWithZDD(Node* dl, vector<int> &O ,unsigned int k, vector<bool> &k
 	cover(dl, c);
 
 	ZddNode* x = ZddForMemo::nodes.at(0);
-	for(Node* r = c->D; r != c; r = r->D){
+
+	//for(Node* r = c->D; r != c; r = r->D)とすると？
+	for(Node* r = c->U; r != c; r = r->U){
 		O.push_back(r->label);
 
 		for(Node* tmp = r->R; tmp != r; tmp = tmp->R){
@@ -438,7 +440,8 @@ ZddNode* searchWithZDDG(Node* dl, vector<int> &O , vector<int> &vG ,unsigned int
 
 	ZddNode* x = ZddForMemo::nodes.at(0);
 
-	for(Node* r = c->D; r != c; r = r->D){
+	//for(Node* r = c->D; r != c; r = r->D)とすると？
+	for(Node* r = c->U; r != c; r = r->U){
 		//今まで選択されたグループと同じか
 		bool flag = false;
 		for(auto g : vG){

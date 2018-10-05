@@ -111,13 +111,14 @@ string pngName = "";
 
 bool outDOT = false;
 bool outPNG = false;
+bool ordered = false;
 
 int main(int argc, char* argv[]){
 	int opt;
 	
 
 	opterr = 0;
-	while((opt = getopt(argc, argv, "a:f:d:p:")) != -1){
+	while((opt = getopt(argc, argv, "a:f:d:p:o")) != -1){
 		switch(opt) {
 			case 'a':
 				if(string(optarg) == "dlx"){
@@ -144,6 +145,9 @@ int main(int argc, char* argv[]){
 			case 'p':
 				outPNG = true;
 				pngName = optarg;
+				break;
+			case 'o':
+				ordered = true;
 				break;
 			default:
 				cout << "Invalid Option." << endl;
@@ -265,7 +269,7 @@ int main(int argc, char* argv[]){
 	if(outDOT == true){
 		dotName = dotName + ".dot";
 		pngName = pngName + ".png";
-		DumpDOT("result", dotName, outPNG?pngName:"");
+		DumpDOT("result", dotName, outPNG?pngName:"", ordered);
 	}
 
 	return 0;
