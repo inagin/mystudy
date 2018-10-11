@@ -6,3 +6,4 @@ instmaker/__pycache__/
 *.pyc
 *.png
 *.dot
+result/
