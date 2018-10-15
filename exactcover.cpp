@@ -118,8 +118,14 @@ int main(int argc, char* argv[]){
 	
 
 	opterr = 0;
-	while((opt = getopt(argc, argv, "a:f:d:p:o")) != -1){
+	while((opt = getopt(argc, argv, "ia:f:d:p:o")) != -1){
 		switch(opt) {
+			case 'i':
+				//sizeofなどの情報を出力
+				cout << "sizeof(Node):" << sizeof(Node) << endl;
+				cout << "sizeof(ZddNode):" << sizeof(ZddNode) << endl;
+				return 0;
+
 			case 'a':
 				if(string(optarg) == "dlx"){
 					algOpt = ALG_DLX;
