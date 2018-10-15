@@ -91,7 +91,6 @@ ZddNode ZddNode::_one;
 
 bool ZddNode::draw = false;
 int ZddNode::maxRow = 0;
-//vector<int> ZddNode::orderNode;
 
 struct ZddQuery{
 	int val;
@@ -138,7 +137,7 @@ public:
 		
 		//ZDDノードの作成
 		ZddNode* zdd = ZddNode::CreateZddNode(val, id_0, id_1);
-		nodes.push_back(zdd); // IDと一致してくれるかな？
+		nodes.push_back(zdd);
 		
 		//nodeMapに追加
 

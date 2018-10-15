@@ -45,6 +45,7 @@ void dumpNode(Node* head){
 	cout << endl;
 }
 
+/*
 //行のグループを示すリスト(要検討)
 struct RNode{
 	RNode* Prev;
@@ -96,3 +97,5 @@ void pushRNode(RNode* head, RNode* x){
 	tmp->Next = x;
 	x->Prev = tmp;
 }
+
+*/
