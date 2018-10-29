@@ -112,13 +112,14 @@ string pngName = "";
 bool outDOT = false;
 bool outPNG = false;
 bool ordered = false;
+bool analyze = false;
 
 int main(int argc, char* argv[]){
 	int opt;
 	
 
 	opterr = 0;
-	while((opt = getopt(argc, argv, "ia:f:d:p:o")) != -1){
+	while((opt = getopt(argc, argv, "ia:f:d:p:ol")) != -1){
 		switch(opt) {
 			case 'i':
 				//sizeofなどの情報を出力
@@ -154,6 +155,9 @@ int main(int argc, char* argv[]){
 				break;
 			case 'o':
 				ordered = true;
+				break;
+			case 'l':
+				analyze = true;
 				break;
 			default:
 				cout << "Invalid Option." << endl;
@@ -252,7 +256,10 @@ int main(int argc, char* argv[]){
 		//Algorithm DXZwithGを使用
 		dataToArrForGrouping(ifs, arr, rowg, rsize, csize, numG);
 		constructDLForGrouping(link, gList, arr, rowg, rsize, csize);
-		zdd = algorithmDXZG(link, csize, numG);
+		if(!analyze)
+			zdd = algorithmDXZG(link, csize, numG);
+		else
+			zdd = algorithmDXZG(link, csize, numG, true);
 	}
 
 	//計測終了
@@ -275,7 +282,7 @@ int main(int argc, char* argv[]){
 	if(outDOT == true){
 		dotName = dotName + ".dot";
 		pngName = pngName + ".png";
-		DumpDOT("result", dotName, outPNG?pngName:"", ordered);
+		DumpDOT("result", dotName, outPNG?pngName:"", ordered, analyze);
 	}
 
 	return 0;
