@@ -506,7 +506,7 @@ ZddNode* searchWithZDDGAnalyze(Node* dl, vector<int> &O , vector<int> &vG ,unsig
 		//	cout << x << " ";
 		//}
 		//cout << endl;
-		return ZddForMemo::nodes.at(1); //1終端を返す
+		return ZddForMemo::nodes_a.at(1); //1終端を返す
 	}// else if( vG.size() == numG + 1 ){ //選択した数が存在するグループ数と一致
 	//	return ZddForMemo::nodes.at(0); //0終端を返す
 	//}
@@ -514,7 +514,13 @@ ZddNode* searchWithZDDGAnalyze(Node* dl, vector<int> &O , vector<int> &vG ,unsig
 	auto it = ZddForMemo::columnMap.find(key);
 	if( it != ZddForMemo::columnMap.end() ){
 		cut++;
-		return ZddForMemo::nodes.at(it->second);
+		ZddNode* zdd = ZddForMemo::nodes_a.at(it->second);
+		ZddNodeAnalyze* zdd_analyze = dynamic_cast<ZddNodeAnalyze*>(zdd);
+		if(zdd_analyze == nullptr){
+			cout << "Something is wrong in searchWithZDD." << endl;;
+		}
+		zdd_analyze->count_hash++;
+		return zdd;
 	}
 
 	Node* c = dl->R;
@@ -522,7 +528,7 @@ ZddNode* searchWithZDDGAnalyze(Node* dl, vector<int> &O , vector<int> &vG ,unsig
 	key[c->label] = false;
 	cover(dl, c);
 
-	ZddNode* x = ZddForMemo::nodes.at(0);
+	ZddNode* x = ZddForMemo::nodes_a.at(0);
 
 	//for(Node* r = c->D; r != c; r = r->D)とすると？
 	for(Node* r = c->U; r != c; r = r->U){
@@ -546,8 +552,8 @@ ZddNode* searchWithZDDGAnalyze(Node* dl, vector<int> &O , vector<int> &vG ,unsig
 		}
 
 		ZddNode* y = searchWithZDDGAnalyze(dl, O, vG, k+1, key, numG, csize, depth + 1);
-		if( y != ZddForMemo::nodes.at(0))
-			x = ZddForMemo::nodes.at( ZddForMemo::Append(r->label, x->GetID(), y->GetID(),depth) );
+		if( y != ZddForMemo::nodes_a.at(0))
+			x = ZddForMemo::nodes_a.at( ZddForMemo::Append(r->label, x->GetID(), y->GetID(),depth) );
 			//x = ZddForMemo::nodes.at( ZddForMemo::Unique(r->label, x->GetID(), y->GetID()) );
 
 		O.pop_back();

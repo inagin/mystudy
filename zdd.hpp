@@ -20,8 +20,6 @@ public:
 	int zero_child;
 	int one_child;
 
-	static ZddNode* ZeroTerminal;
-	static ZddNode* OneTerminal;
 	static ZddNode _zero;
 	static ZddNode _one;
 
@@ -39,14 +37,14 @@ protected:
 public:
 
 	static void Init(){
-		ZeroTerminal = &_zero;
-		OneTerminal = &_one;
+		ZddNode* zero = &_zero;
+		ZddNode* one = &_one;
 
-		ZeroTerminal->val = -1;
-		OneTerminal->val = -1;
+		zero->val = -1;
+		one->val = -1;
 
-		ZeroTerminal->_id = 0;
-		OneTerminal->_id = 1;
+		zero->_id = 0;
+		one->_id = 1;
 
 	}
 
@@ -87,10 +85,25 @@ public:
 
 class ZddNodeAnalyze : public ZddNode{
 public:
-	unsigned int count_share; //共有に使われた回数
+	static ZddNodeAnalyze _zeroa;
+	static ZddNodeAnalyze _onea;
+
+	unsigned int count_hash; //ハッシュで引かれた回数
 	unsigned int count_depth; //深さ
 	unsigned int count_reduce; //節点共有規則が適用された回数 
 
+
+	static void Init(){
+		ZddNodeAnalyze* zero = &_zeroa;
+		ZddNodeAnalyze* one = &_onea;
+
+		zero->val = -1;
+		one->val = -1;
+
+		zero->_id = 0;
+		one->_id = 1;
+
+	}
 
 	static ZddNodeAnalyze* CreateZddNode(int _val, int _zero_child, int _one_child, unsigned int depth){
 		if(draw){
@@ -104,7 +117,7 @@ public:
 		node->one_child = _one_child;
 		node->val = _val;
 
-		node->count_share = 0;
+		node->count_hash = 0;
 		node->count_depth = depth;
 		node->count_reduce = 0;
 
@@ -114,10 +127,10 @@ public:
 };
 
 int ZddNode::_total_id = 2;
-ZddNode* ZddNode::ZeroTerminal;
-ZddNode* ZddNode::OneTerminal;
 ZddNode ZddNode::_zero;
 ZddNode ZddNode::_one;
+ZddNodeAnalyze ZddNodeAnalyze::_zeroa;
+ZddNodeAnalyze ZddNodeAnalyze::_onea;
 
 bool ZddNode::draw = false;
 int ZddNode::maxRow = 0;
@@ -155,6 +168,11 @@ public:
 		ZddNode::Init();
 		nodes.push_back( &ZddNode::_zero );
 		nodes.push_back( &ZddNode::_one );
+
+		//分析用
+		ZddNodeAnalyze::Init();
+		nodes_a.push_back( &ZddNodeAnalyze::_zeroa);
+		nodes_a.push_back( &ZddNodeAnalyze::_onea);
 	}
 	
 	//ZDDNodeを探して、ノードのIDを返却。もし無かったら追加する（整数番号、0-枝側の接続先ノード、1-枝側の接続先ノード）
@@ -186,17 +204,19 @@ public:
 	//分析用ノードを追加
 	static int Append(int val, int id_0, int id_1, unsigned int depth){
 		ZddNodeAnalyze* zdd = ZddNodeAnalyze::CreateZddNode(val, id_0, id_1, depth);
-		nodes.push_back(zdd);
+		nodes_a.push_back(zdd);
 
 		return zdd->GetID();
 	}
 	static vector<ZddNode*> nodes; //ZDDノードを入れておく
+	static vector<ZddNodeAnalyze*> nodes_a; //分析用ZDDノードを入れておく
 	static unordered_map<ZddQuery, int, HashZddQuery> nodeMap; //IDを値とするハッシュ
 	static unordered_map<vector<bool>, int> columnMap; //選択された列をキー、IDを値とするハッシュ
 
 };
 
 vector<ZddNode*> ZddForMemo::nodes;
+vector<ZddNodeAnalyze*> ZddForMemo::nodes_a;
 unordered_map<ZddQuery, int, HashZddQuery> ZddForMemo::nodeMap;
 unordered_map<vector<bool>, int> ZddForMemo::columnMap;
 
@@ -233,6 +253,42 @@ void DumpZdd(ZddNode* node, bool text = true){
 
 	cout << "ZDD Paths To 1 Node: " << endl;
 	DumpZddR(node, O, text);
+
+	cout << endl;
+	cout << "Number Of ZDD Nodes: " << ZddNode::GetNumOfZDDNode() << endl;
+	cout << "Number Of ZDD Sets : " << countOfSets << endl;
+}
+
+void DumpZddRAnalyze(ZddNodeAnalyze* node, vector<int> &O, bool text = true){
+	if(node->GetID() == 1){
+		if(text){
+			for(int x : O)
+				cout << x << " ";
+			cout << endl;
+		}
+		countOfSets++;
+		return;
+
+	} else if(node->GetID() == 0){
+		return;
+
+	}
+
+	//0-枝
+	DumpZddRAnalyze(ZddForMemo::nodes_a[ node->zero_child ], O, text);
+	O.push_back(node->val);
+
+	//1-枝
+	DumpZddRAnalyze(ZddForMemo::nodes_a[ node->one_child ], O, text);
+	O.pop_back();
+}
+
+void DumpZddAnalyze(ZddNodeAnalyze* node, bool text = true){
+	countOfSets = 0;
+	vector<int> O;
+
+	cout << "ZDD Paths To 1 Node: " << endl;
+	DumpZddRAnalyze(node, O, text);
 
 	cout << endl;
 	cout << "Number Of ZDD Nodes: " << ZddNode::GetNumOfZDDNode() << endl;
@@ -324,18 +380,18 @@ void DumpDOT(string graphName, string fileName, string outputPNGFile = "", bool 
 				}
 			}
 		} else {
-			for(int j = 0; j < ZddForMemo::nodes.size(); j++){
-				if(i == ZddForMemo::nodes[j]->val){
+			//////////////////////////////////
+			/* 分析用の情報をZDDノードに表示させる */
+			//////////////////////////////////
+
+			for(int j = 0; j < ZddForMemo::nodes_a.size(); j++){
+				if(i == ZddForMemo::nodes_a[j]->val){
 					//iと同じ番号のZDDノードを並べる
-					ZddNode* node = ZddForMemo::nodes[j];
-					ZddNodeAnalyze* nodej = dynamic_cast<ZddNodeAnalyze*>(node);
-					if(nodej == nullptr){
-						cout << "Something is wrong in DumpDOT." << endl;
-						return;
-					}
-					ofs << " " << "\"" << i << ":" << j << "\" [label=\"" << i << ", d:" << nodej->count_depth << "\"];" << endl;
-					ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes[nodej->zero_child]->val << ":" << nodej->zero_child << "\" [style=dashed, color=blue];" << endl; 
-					ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes[nodej->one_child]->val << ":" << nodej->one_child << "\" [style=solid, color=red];" << endl; 
+					ZddNodeAnalyze* nodej = ZddForMemo::nodes_a[j];
+
+					ofs << " " << "\"" << i << ":" << j << "\" [label=\"" << i << ", id:" << nodej->GetID() << ", d:" << nodej->count_depth << ", h: " << nodej->count_hash << "\"];" << endl;
+					ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes_a[nodej->zero_child]->val << ":" << nodej->zero_child << "\" [style=dashed, color=blue];" << endl; 
+					ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes_a[nodej->one_child]->val << ":" << nodej->one_child << "\" [style=solid, color=red];" << endl; 
 
 					if(ordered == true){
 						sameList.push_back(j);
@@ -353,8 +409,14 @@ void DumpDOT(string graphName, string fileName, string outputPNGFile = "", bool 
 		}
 	}
 
-	ofs << " \"-1:0\" [shape=square, label=\"0\"];" << endl; 
-	ofs << " \"-1:1\" [shape=square, label=\"1\"];" << endl; 
+	if(!analyze){
+		ofs << " \"-1:0\" [shape=square, label=\"0\"];" << endl; 
+		ofs << " \"-1:1\" [shape=square, label=\"1\"];" << endl; 
+	} else {
+		cout << "hogehoge" << endl;
+		ofs << " \"-1:0\" [shape=square, label=\"0, h: " << ZddNodeAnalyze::_zeroa.count_hash << "\"];" << endl; 
+		ofs << " \"-1:1\" [shape=square, label=\"1\"];" << endl; 		
+	}
 
 	ofs << "}";
 	ofs.close();

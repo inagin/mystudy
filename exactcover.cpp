@@ -181,6 +181,11 @@ int main(int argc, char* argv[]){
 		return -1;
 	}
 
+	if(analyze == true && (algOpt != ALG_DXZG)){
+		cout << "Analyzing mode is only for Algorithm DXZG." << endl;
+		return -1;
+	}
+
 	ifstream ifs(instanceName);
 
 	int** arr;
@@ -213,12 +218,17 @@ int main(int argc, char* argv[]){
 		//Algorithm DXZwithGを使用
 		dataToArrForGrouping(ifs, arr, rowg, rsize, csize, numG);
 		constructDLForGrouping(link, gList, arr, rowg, rsize, csize);
+
 	}
 
 	cout << endl;
 
 	if(outDOT == true){
 		ZddNode::OnDraw();
+	}
+	
+	if(analyze){
+		cout << "Analyzing mode" << endl;
 	}
 
 	//列の番号を出力
@@ -268,12 +278,17 @@ int main(int argc, char* argv[]){
 
 	auto msec = chrono::duration_cast<chrono::milliseconds>(dur).count();
 
-	if(algOpt == ALG_DXZ) {
-		DumpZdd(zdd);
-	} else if(algOpt == ALG_DXZG){
-		DumpZdd(zdd);
+	if(analyze){
+		ZddNodeAnalyze* zdda = dynamic_cast<ZddNodeAnalyze*>(zdd);
+		DumpZddAnalyze(zdda);
+	} else {
+		if(algOpt == ALG_DXZ) {
+			DumpZdd(zdd);
+		} else if(algOpt == ALG_DXZG){
+			DumpZdd(zdd);
+		}
 	}
-	
+
 	cout << "Elappsed Time :" << msec << " milli sec" << endl;
 	cout << "Count         :" << saiki << endl;
 	if(algOpt == ALG_DXZ || algOpt == ALG_DXZG )cout << "Cut Count     :" << cut << endl;
