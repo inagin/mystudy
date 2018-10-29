@@ -1,0 +1,16 @@
+Algorithm DXZwithG
+
+Instance inst\tetris\tetris_4x6.dat:
+      
+
+ZDD Paths To 1 Node: 
+
+
+Number Of ZDD Nodes: 2
+Number Of ZDD Sets : 1
+Elappsed Time :0 milli sec
+Count         :1
+Cut Count     :0
+
+Created tetris_4x6.dot.
+Created tetris_4x6.png.

@@ -1,0 +1,33 @@
+Algorithm DXZwithG
+
+Instance inst\misc\test05.csv:
+      0 1 2 3 4 5 
+   0 :1 0 0 0 1 1 
+   1 :1 1 0 0 0 1 
+   2 :0 1 1 1 0 0 
+   3 :0 0 1 1 1 0 
+   4 :1 0 0 1 0 1 
+   5 :0 1 1 0 1 0 
+   6 :0 0 1 1 1 0 
+   7 :1 0 1 0 0 1 
+   8 :1 0 0 1 0 1 
+   9 :0 0 1 1 1 0 
+  10 :1 1 0 0 0 1 
+  11 :0 0 1 1 1 0 
+
+ZDD Paths To 1 Node: 
+10 6 
+10 3 
+8 5 
+1 11 
+1 9 
+1 6 
+
+Number Of ZDD Nodes: 11
+Number Of ZDD Sets : 6
+Elappsed Time :0 milli sec
+Count         :13
+Cut Count     :0
+
+Created test\test05.dot.
+Created test\test05.png.
