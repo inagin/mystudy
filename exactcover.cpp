@@ -295,9 +295,18 @@ int main(int argc, char* argv[]){
 	cout << endl;
 
 	if(outDOT == true){
-		dotName = dotName + ".dot";
-		pngName = pngName + ".png";
-		DumpDOT("result", dotName, outPNG?pngName:"", ordered, analyze);
+		string dotName2 = dotName + ".dot";
+		string pngName2 = pngName + ".png";
+		DumpDOT("result", dotName2, outPNG?pngName2:"", ordered, analyze);
+	}
+
+	if(analyze){
+		DumpReduce();
+		if(outDOT == true){
+			dotName = dotName + "_r.dot";
+			pngName = pngName + "_r.png";
+			DumpDOT("result", dotName, outPNG?pngName:"", ordered, analyze);
+		}
 	}
 
 	return 0;

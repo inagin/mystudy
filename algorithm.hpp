@@ -574,7 +574,6 @@ ZddNode* searchWithZDDGAnalyze(Node* dl, vector<int> &O , vector<int> &vG ,unsig
 	return x;
 }
 
-
 //アルゴリズムDXZG
 ZddNode* algorithmDXZG(Node* dl, int& csize, const int& numG, bool analyze = false){
 	ZddForMemo::Init();
