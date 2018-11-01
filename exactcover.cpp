@@ -112,13 +112,14 @@ string pngName = "";
 bool outDOT = false;
 bool outPNG = false;
 bool ordered = false;
+bool analyze = false;
 
 int main(int argc, char* argv[]){
 	int opt;
 	
 
 	opterr = 0;
-	while((opt = getopt(argc, argv, "ia:f:d:p:o")) != -1){
+	while((opt = getopt(argc, argv, "ia:f:d:p:ol")) != -1){
 		switch(opt) {
 			case 'i':
 				//sizeofなどの情報を出力
@@ -155,6 +156,9 @@ int main(int argc, char* argv[]){
 			case 'o':
 				ordered = true;
 				break;
+			case 'l':
+				analyze = true;
+				break;
 			default:
 				cout << "Invalid Option." << endl;
 			return -1;
@@ -174,6 +178,11 @@ int main(int argc, char* argv[]){
 
 	if(outDOT == true && (algOpt == ALG_DLX || algOpt == ALG_DLXG)){
 		cout << "This algorithm does not support output DOT file." << endl;
+		return -1;
+	}
+
+	if(analyze == true && (algOpt != ALG_DXZG)){
+		cout << "Analyzing mode is only for Algorithm DXZG." << endl;
 		return -1;
 	}
 
@@ -209,12 +218,17 @@ int main(int argc, char* argv[]){
 		//Algorithm DXZwithGを使用
 		dataToArrForGrouping(ifs, arr, rowg, rsize, csize, numG);
 		constructDLForGrouping(link, gList, arr, rowg, rsize, csize);
+
 	}
 
 	cout << endl;
 
 	if(outDOT == true){
 		ZddNode::OnDraw();
+	}
+	
+	if(analyze){
+		cout << "Analyzing mode" << endl;
 	}
 
 	//列の番号を出力
@@ -252,7 +266,10 @@ int main(int argc, char* argv[]){
 		//Algorithm DXZwithGを使用
 		dataToArrForGrouping(ifs, arr, rowg, rsize, csize, numG);
 		constructDLForGrouping(link, gList, arr, rowg, rsize, csize);
-		zdd = algorithmDXZG(link, csize, numG);
+		if(!analyze)
+			zdd = algorithmDXZG(link, csize, numG);
+		else
+			zdd = algorithmDXZG(link, csize, numG, true);
 	}
 
 	//計測終了
@@ -261,21 +278,35 @@ int main(int argc, char* argv[]){
 
 	auto msec = chrono::duration_cast<chrono::milliseconds>(dur).count();
 
-	if(algOpt == ALG_DXZ) {
-		DumpZdd(zdd);
-	} else if(algOpt == ALG_DXZG){
-		DumpZdd(zdd);
+	if(analyze){
+		ZddNodeAnalyze* zdda = dynamic_cast<ZddNodeAnalyze*>(zdd);
+		DumpZddAnalyze(zdda);
+	} else {
+		if(algOpt == ALG_DXZ) {
+			DumpZdd(zdd);
+		} else if(algOpt == ALG_DXZG){
+			DumpZdd(zdd);
+		}
 	}
-	
+
 	cout << "Elappsed Time :" << msec << " milli sec" << endl;
 	cout << "Count         :" << saiki << endl;
 	if(algOpt == ALG_DXZ || algOpt == ALG_DXZG )cout << "Cut Count     :" << cut << endl;
 	cout << endl;
 
 	if(outDOT == true){
-		dotName = dotName + ".dot";
-		pngName = pngName + ".png";
-		DumpDOT("result", dotName, outPNG?pngName:"", ordered);
+		string dotName2 = dotName + ".dot";
+		string pngName2 = pngName + ".png";
+		DumpDOT("result", dotName2, outPNG?pngName2:"", ordered, analyze);
+	}
+
+	if(analyze){
+		DumpReduce();
+		if(outDOT == true){
+			dotName = dotName + "_r.dot";
+			pngName = pngName + "_r.png";
+			DumpDOT("result", dotName, outPNG?pngName:"", ordered, analyze);
+		}
 	}
 
 	return 0;

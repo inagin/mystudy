@@ -20,8 +20,6 @@ public:
 	int zero_child;
 	int one_child;
 
-	static ZddNode* ZeroTerminal;
-	static ZddNode* OneTerminal;
 	static ZddNode _zero;
 	static ZddNode _one;
 
@@ -29,7 +27,9 @@ public:
 	static int maxRow;
 	//static vector<int> orderNode; //追加されたvalの順序を保存（描画用）
 
-private:
+	virtual ~ZddNode(){};
+
+protected:
 	int _id; //ノードのID。0-終端ノードは0、1-終端ノードは1、それ以外は2～
 	static int _total_id;
 
@@ -37,14 +37,14 @@ private:
 public:
 
 	static void Init(){
-		ZeroTerminal = &_zero;
-		OneTerminal = &_one;
+		ZddNode* zero = &_zero;
+		ZddNode* one = &_one;
 
-		ZeroTerminal->val = -1;
-		OneTerminal->val = -1;
+		zero->val = -1;
+		one->val = -1;
 
-		ZeroTerminal->_id = 0;
-		OneTerminal->_id = 1;
+		zero->_id = 0;
+		one->_id = 1;
 
 	}
 
@@ -83,11 +83,54 @@ public:
 
 };
 
+class ZddNodeAnalyze : public ZddNode{
+public:
+	static ZddNodeAnalyze _zeroa;
+	static ZddNodeAnalyze _onea;
+
+	unsigned int count_hash; //ハッシュで引かれた回数
+	unsigned int count_depth; //深さ
+	unsigned int count_reduce; //節点共有規則が適用された回数 
+
+
+	static void Init(){
+		ZddNodeAnalyze* zero = &_zeroa;
+		ZddNodeAnalyze* one = &_onea;
+
+		zero->val = -1;
+		one->val = -1;
+
+		zero->_id = 0;
+		one->_id = 1;
+
+	}
+
+	static ZddNodeAnalyze* CreateZddNode(int _val, int _zero_child, int _one_child, unsigned int depth){
+		if(draw){
+			if(_val > ZddNode::maxRow)ZddNode::maxRow = _val;
+		}
+
+		ZddNodeAnalyze* node = new ZddNodeAnalyze();
+		node->_id = _total_id++; //ノード番号を割り振る
+
+		node->zero_child = _zero_child;
+		node->one_child = _one_child;
+		node->val = _val;
+
+		node->count_hash = 0;
+		node->count_depth = depth;
+		node->count_reduce = 0;
+
+
+	}
+
+};
+
 int ZddNode::_total_id = 2;
-ZddNode* ZddNode::ZeroTerminal;
-ZddNode* ZddNode::OneTerminal;
 ZddNode ZddNode::_zero;
 ZddNode ZddNode::_one;
+ZddNodeAnalyze ZddNodeAnalyze::_zeroa;
+ZddNodeAnalyze ZddNodeAnalyze::_onea;
 
 bool ZddNode::draw = false;
 int ZddNode::maxRow = 0;
@@ -125,6 +168,11 @@ public:
 		ZddNode::Init();
 		nodes.push_back( &ZddNode::_zero );
 		nodes.push_back( &ZddNode::_one );
+
+		//分析用
+		ZddNodeAnalyze::Init();
+		nodes_a.push_back( &ZddNodeAnalyze::_zeroa);
+		nodes_a.push_back( &ZddNodeAnalyze::_onea);
 	}
 	
 	//ZDDNodeを探して、ノードのIDを返却。もし無かったら追加する（整数番号、0-枝側の接続先ノード、1-枝側の接続先ノード）
@@ -140,18 +188,35 @@ public:
 		nodes.push_back(zdd);
 		
 		//nodeMapに追加
-
+		nodeMap.insert(make_pair(q, zdd->GetID()));
 
 		return zdd->GetID();
 	}
 
+	//重複を調べずにノードを追加
+	static int Append(int val, int id_0, int id_1){
+		ZddNode* zdd = ZddNode::CreateZddNode(val, id_0, id_1);
+		nodes.push_back(zdd);
+
+		return zdd->GetID();
+	}
+
+	//分析用ノードを追加
+	static int Append(int val, int id_0, int id_1, unsigned int depth){
+		ZddNodeAnalyze* zdd = ZddNodeAnalyze::CreateZddNode(val, id_0, id_1, depth);
+		nodes_a.push_back(zdd);
+
+		return zdd->GetID();
+	}
 	static vector<ZddNode*> nodes; //ZDDノードを入れておく
+	static vector<ZddNodeAnalyze*> nodes_a; //分析用ZDDノードを入れておく
 	static unordered_map<ZddQuery, int, HashZddQuery> nodeMap; //IDを値とするハッシュ
 	static unordered_map<vector<bool>, int> columnMap; //選択された列をキー、IDを値とするハッシュ
 
 };
 
 vector<ZddNode*> ZddForMemo::nodes;
+vector<ZddNodeAnalyze*> ZddForMemo::nodes_a;
 unordered_map<ZddQuery, int, HashZddQuery> ZddForMemo::nodeMap;
 unordered_map<vector<bool>, int> ZddForMemo::columnMap;
 
@@ -194,6 +259,42 @@ void DumpZdd(ZddNode* node, bool text = true){
 	cout << "Number Of ZDD Sets : " << countOfSets << endl;
 }
 
+void DumpZddRAnalyze(ZddNodeAnalyze* node, vector<int> &O, bool text = true){
+	if(node->GetID() == 1){
+		if(text){
+			for(int x : O)
+				cout << x << " ";
+			cout << endl;
+		}
+		countOfSets++;
+		return;
+
+	} else if(node->GetID() == 0){
+		return;
+
+	}
+
+	//0-枝
+	DumpZddRAnalyze(ZddForMemo::nodes_a[ node->zero_child ], O, text);
+	O.push_back(node->val);
+
+	//1-枝
+	DumpZddRAnalyze(ZddForMemo::nodes_a[ node->one_child ], O, text);
+	O.pop_back();
+}
+
+void DumpZddAnalyze(ZddNodeAnalyze* node, bool text = true){
+	countOfSets = 0;
+	vector<int> O;
+
+	cout << "ZDD Paths To 1 Node: " << endl;
+	DumpZddRAnalyze(node, O, text);
+
+	cout << endl;
+	cout << "Number Of ZDD Nodes: " << ZddNode::GetNumOfZDDNode() << endl;
+	cout << "Number Of ZDD Sets : " << countOfSets << endl;
+}
+
 //ZDDの構造を表示する
 void DumpZddNode(ZddNode* node, int k = 0){
 	for(int i = 0; i < k; i++){
@@ -230,13 +331,66 @@ void DumpColumnMap(){
 			cout << (b)?"1":"0";
 		}
 
-		cout << " Id: " << x.second << "\n";
+		cout << " Id: " << x.second << endl;
 	}
 	return;
 }
 
+//nodes_a を探索して、0-子、1-子、自身の値が被るZDDがあれば共有
+//効率は考えない
+void DumpReduce(){
+	int reduce_count = 0;
+
+	bool flag = true;
+
+	cout << endl;
+
+	//既約になるまで繰り返す
+	while(flag == true){
+		flag = false;
+		for(auto it_1 = ZddForMemo::nodes_a.begin() + 2; it_1 != ZddForMemo::nodes_a.end(); ++it_1){
+			if((*it_1) == nullptr)continue;
+			for(auto it_2 = ZddForMemo::nodes_a.begin() + 2;  it_2 != ZddForMemo::nodes_a.end(); ++it_2){
+				if((*it_2) == nullptr)continue;
+				if(it_1 == it_2)continue;
+
+				if((*it_1)->val == (*it_2)->val && (*it_1)->zero_child == (*it_2)->zero_child && (*it_1)->one_child == (*it_2)->one_child){
+					//一致するZDDが存在
+					cout << (*it_1)->GetID() <<"(d=" << (*it_1)->count_depth << ")" << " and " << (*it_2)->GetID() <<"(d=" << (*it_2)->count_depth << ") are equivalent." << endl;
+					reduce_count++;
+
+					//共有操作
+					//(*it_2)の節点に接続している辺を探す
+					for(ZddNodeAnalyze* const& k: ZddForMemo::nodes_a){
+						if(k == nullptr)continue;
+
+						if(k->zero_child == (*it_2)->GetID()){
+							k->zero_child = (*it_1)->GetID();
+						}
+						if(k->one_child == (*it_2)->GetID()){
+							k->one_child = (*it_1)->GetID();
+						}
+					}
+
+					//節点jを削除
+					delete (*it_2);
+					*it_2 = nullptr;
+
+					flag = true;
+					break;
+				}
+			}
+			if(flag == true)break;
+		}
+	}
+
+	cout << "Reduction Count: " << reduce_count << endl;
+	cout << endl;
+	return;
+}
+
 //ordered: 一行に同じノードが並ぶようにする
-void DumpDOT(string graphName, string fileName, string outputPNGFile = "", bool ordered = false){
+void DumpDOT(string graphName, string fileName, string outputPNGFile = "", bool ordered = false, bool analyze = false){
 	//DOTファイルを出力
 	ofstream ofs(fileName, ofstream::out);
 
@@ -264,18 +418,41 @@ void DumpDOT(string graphName, string fileName, string outputPNGFile = "", bool 
 			sameList.clear();
 		}
 
-		for(int j = 0; j < ZddForMemo::nodes.size(); j++){
-			if(i == ZddForMemo::nodes[j]->val){
-				//iと同じ番号のZDDノードを並べる
-				ZddNode* nodej = ZddForMemo::nodes[j];
-				ofs << " " << "\"" << i << ":" << j << "\" [label=\"" << i << "\"];" << endl;
-				ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes[nodej->zero_child]->val << ":" << nodej->zero_child << "\" [style=dashed, color=blue];" << endl; 
-				ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes[nodej->one_child]->val << ":" << nodej->one_child << "\" [style=solid, color=red];" << endl; 
+		if(!analyze){
+			for(int j = 0; j < ZddForMemo::nodes.size(); j++){
+				if(i == ZddForMemo::nodes[j]->val){
+					//iと同じ番号のZDDノードを並べる
+					ZddNode* nodej = ZddForMemo::nodes[j];
+					ofs << " " << "\"" << i << ":" << j << "\" [label=\"" << i << "\"];" << endl;
+					ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes[nodej->zero_child]->val << ":" << nodej->zero_child << "\" [style=dashed, color=blue];" << endl; 
+					ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes[nodej->one_child]->val << ":" << nodej->one_child << "\" [style=solid, color=red];" << endl; 
 
-				if(ordered == true){
-					sameList.push_back(j);
+					if(ordered == true){
+						sameList.push_back(j);
+					}
 				}
 			}
+		} else {
+			//////////////////////////////////
+			/* 分析用の情報をZDDノードに表示させる */
+			//////////////////////////////////
+
+			for(int j = 0; j < ZddForMemo::nodes_a.size(); j++){
+				if( ZddForMemo::nodes_a[j] ){
+					if(i == ZddForMemo::nodes_a[j]->val){
+						//iと同じ番号のZDDノードを並べる
+						ZddNodeAnalyze* nodej = ZddForMemo::nodes_a[j];
+
+						ofs << " " << "\"" << i << ":" << j << "\" [label=\"" << i << ", id:" << nodej->GetID() << ", d:" << nodej->count_depth << ", h: " << nodej->count_hash << "\"];" << endl;
+						ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes_a[nodej->zero_child]->val << ":" << nodej->zero_child << "\" [style=dashed, color=blue];" << endl; 
+						ofs << " " << "\"" << i << ":" << j << "\" -> \"" << ZddForMemo::nodes_a[nodej->one_child]->val << ":" << nodej->one_child << "\" [style=solid, color=red];" << endl; 
+
+						if(ordered == true){
+							sameList.push_back(j);
+						}
+					}
+				}
+			}			
 		}
 
 		if(ordered == true){
@@ -287,8 +464,13 @@ void DumpDOT(string graphName, string fileName, string outputPNGFile = "", bool 
 		}
 	}
 
-	ofs << " \"-1:0\" [shape=square, label=\"0\"];" << endl; 
-	ofs << " \"-1:1\" [shape=square, label=\"1\"];" << endl; 
+	if(!analyze){
+		ofs << " \"-1:0\" [shape=square, label=\"0\"];" << endl; 
+		ofs << " \"-1:1\" [shape=square, label=\"1\"];" << endl; 
+	} else {
+		ofs << " \"-1:0\" [shape=square, label=\"0, h: " << ZddNodeAnalyze::_zeroa.count_hash << "\"];" << endl; 
+		ofs << " \"-1:1\" [shape=square, label=\"1\"];" << endl; 		
+	}
 
 	ofs << "}";
 	ofs.close();
