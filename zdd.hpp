@@ -356,7 +356,7 @@ void DumpReduce(){
 
 				if((*it_1)->val == (*it_2)->val && (*it_1)->zero_child == (*it_2)->zero_child && (*it_1)->one_child == (*it_2)->one_child){
 					//一致するZDDが存在
-					cout << (*it_1)->GetID() << " and " << (*it_2)->GetID() << " are equivalent." << endl;
+					cout << (*it_1)->GetID() <<"(d=" << (*it_1)->count_depth << ")" << " and " << (*it_2)->GetID() <<"(d=" << (*it_2)->count_depth << ") are equivalent." << endl;
 					reduce_count++;
 
 					//共有操作
