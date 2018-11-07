@@ -101,7 +101,8 @@ enum {
 	ALG_DLX,
 	ALG_DXZ,
 	ALG_DLXG,
-	ALG_DXZG
+	ALG_DXZG,
+	ALG_DXZG2
 };
 
 int algOpt = ALG_DXZG; //アルゴリズムの種類
@@ -136,6 +137,8 @@ int main(int argc, char* argv[]){
 					algOpt = ALG_DLXG;
 				} else if(string(optarg) == "dxzg"){
 					algOpt = ALG_DXZG;
+				} else if(string(optarg) == "dxzg2"){
+					algOpt = ALG_DXZG2;
 				} else {
 					cout << "Algorithm is invalid." << endl;
 					return -1;
@@ -219,6 +222,12 @@ int main(int argc, char* argv[]){
 		dataToArrForGrouping(ifs, arr, rowg, rsize, csize, numG);
 		constructDLForGrouping(link, gList, arr, rowg, rsize, csize);
 
+	} else if(algOpt == ALG_DXZG2){
+		cout << "Algorithm DXZwithG" << endl;
+		//Algorithm DXZwithGを使用
+		dataToArrForGrouping(ifs, arr, rowg, rsize, csize, numG);
+		constructDLForGrouping(link, gList, arr, rowg, rsize, csize);
+
 	}
 
 	cout << endl;
@@ -259,17 +268,16 @@ int main(int argc, char* argv[]){
 		algorithmDLX(link);
 	} else if(algOpt == ALG_DXZ) {
 		//Algorithm DXZを使用
-		dataToArr(ifs, arr, rsize, csize);
-		link = constructDL(arr, rsize, csize);
 		zdd = algorithmDXZ(link, csize);
 	} else if(algOpt == ALG_DXZG){
 		//Algorithm DXZwithGを使用
-		dataToArrForGrouping(ifs, arr, rowg, rsize, csize, numG);
-		constructDLForGrouping(link, gList, arr, rowg, rsize, csize);
 		if(!analyze)
 			zdd = algorithmDXZG(link, csize, numG);
 		else
 			zdd = algorithmDXZG(link, csize, numG, true);
+	} else if(algOpt == ALG_DXZG2){
+		//Algorithm DXZwithG2を使用
+		zdd = algorithmDXZG2(link, csize, numG);
 	}
 
 	//計測終了
@@ -286,12 +294,14 @@ int main(int argc, char* argv[]){
 			DumpZdd(zdd);
 		} else if(algOpt == ALG_DXZG){
 			DumpZdd(zdd);
+		} else if(algOpt == ALG_DXZG2){
+			DumpZdd(zdd);
 		}
 	}
 
 	cout << "Elappsed Time :" << msec << " milli sec" << endl;
 	cout << "Count         :" << saiki << endl;
-	if(algOpt == ALG_DXZ || algOpt == ALG_DXZG )cout << "Cut Count     :" << cut << endl;
+	if(algOpt == ALG_DXZ || algOpt == ALG_DXZG || algOpt == ALG_DXZG2 )cout << "Cut Count     :" << cut << endl;
 	cout << endl;
 
 	if(outDOT == true){
