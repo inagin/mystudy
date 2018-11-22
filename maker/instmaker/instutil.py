@@ -1,5 +1,8 @@
 #coding:utf-8
 
+#列順序の入れ替え用
+#ぐるぐる
+
 #排他制約をつけない
 def makeMultiMinoFile(fileName, fieldX, fieldY, mino):
   f = open(fileName, 'w')
@@ -52,7 +55,7 @@ def makeMultiMinoFile(fileName, fieldX, fieldY, mino):
 
   f.close()
 
-def makeMinoFile(fileName, fieldX, fieldY, mino, minoG):
+def makeMinoFile(fileName, fieldX, fieldY, mino, minoG, func = None):
   f = open(fileName, 'w')
 
   numGroup = max(minoG)
@@ -92,6 +95,10 @@ def makeMinoFile(fileName, fieldX, fieldY, mino, minoG):
   				rowCount += 1
 
   f.write("{},{},{}\n".format(rowCount, fieldX * fieldY,numGroup))
+
+  #行順序の入れ替え
+  if(func is not None):
+    func(out)
 
   for r in range(0, len(out)):
   	for x in range(0, len(out[r])):

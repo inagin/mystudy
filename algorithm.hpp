@@ -742,6 +742,7 @@ ZddNode* searchWithZDDG2(Node* dl, vector<int> &O , vector<int> &vG ,unsigned in
 
 		key[csize + r->group] = false;
 	}
+
 	uncover(dl, c);
 	key[c->label] = true;
 

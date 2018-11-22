@@ -301,7 +301,10 @@ int main(int argc, char* argv[]){
 
 	cout << "Elappsed Time :" << msec << " milli sec" << endl;
 	cout << "Count         :" << saiki << endl;
-	if(algOpt == ALG_DXZ || algOpt == ALG_DXZG || algOpt == ALG_DXZG2 )cout << "Cut Count     :" << cut << endl;
+	if(algOpt == ALG_DXZ || algOpt == ALG_DXZG || algOpt == ALG_DXZG2 ){
+		cout << "Cut Count     :" << cut << endl;
+		cout << "Hash Size     :" << ZddForMemo::columnMap.size();
+	}
 	cout << endl;
 
 	if(outDOT == true){
