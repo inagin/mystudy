@@ -170,3 +170,84 @@ def makeMinoFileEC(fileName, fieldX, fieldY, mino, minoG):
       f.write('\n')
 
   f.close()
+
+
+def makeMinoFile3D(fileName, fieldX, fieldY, fieldZ, mino, minoG, func = None):
+  f = open(fileName, 'w')
+
+  numGroup = max(minoG)
+  rowCount = 0
+  out = [] #アウトプットする行を入れる
+
+  for minoI in range(0, len(mino)):
+    #座標(i,j,k) にミノの左上が来るようにする
+    for i in range(0, fieldZ):
+      for j in range(0,fieldY):
+        for k in range(0, fieldX):
+        #横幅・縦幅・奥行が足りているか
+          if((k + len(mino[minoI][0][0])) <= fieldX and
+            (j + len(mino[minoI][0])) <= fieldY and
+            (i + len(mino[minoI])) <= fieldZ):
+            #列の作成
+            row = []
+
+            #余分な要素が追加されてしまう問題
+            try:
+              row.append(minoG[minoI])
+            except IndexError:
+              print(minoI)
+
+            for l in range(0, fieldZ):
+              if(l < i):
+                for m in range(0, fieldY):
+                  for n in range(0, fieldX):
+                    row.append(0)
+
+              elif(i <= l and l-i < len(mino[minoI]) ):
+                for m in range(0, fieldY):
+                  if(m < j):
+                    for n in range(0, fieldX):
+                      row.append(0)
+
+                  elif(j <= m  and m-j < len(mino[minoI][0]) ):
+                    for n in range(0, fieldX):
+                      if(n < k):
+                        row.append(0)
+                      elif(k <= n  and n-k < len(mino[minoI][0][0]) ):
+                        try:
+                          row.append(mino[minoI][l-i][m-j][n-k])
+                        except IndexError:
+                          print(minoI)
+                          print("l-i = {}, m-j = {}, n-k = {}".format(l-i,m-j,n-k))
+                          print(mino[minoI])
+                      else:
+                        row.append(0)
+
+                  else:
+                    for n in range(0, fieldX):
+                      row.append(0)
+
+              else:
+                for m in range(0, fieldY):
+                  for n in range(0, fieldX):
+                    row.append(0)
+
+            out.append(row)
+            rowCount += 1
+
+  f.write("{},{},{}\n".format(rowCount, fieldX * fieldY * fieldZ ,numGroup))
+
+  if(func is not None):
+    func(out)
+
+  for r in range(0, len(out)):
+    for x in range(0, len(out[r])):
+      f.write(str(out[r][x]))
+
+      if(x != len(out[r]) - 1):
+        f.write(',')
+
+    if(r != len(out) - 1):
+      f.write('\n')
+
+  f.close()
